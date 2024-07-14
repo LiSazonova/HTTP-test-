@@ -1,0 +1,12 @@
+.articles {
+  display: flex;
+  list-style: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.articles_item {
+    font-size: 18px;
+    
+}
