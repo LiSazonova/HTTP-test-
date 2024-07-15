@@ -1,26 +1,38 @@
 import { useEffect, useState } from 'react';
-import axios from 'axios';
 import ArticleList from './components/ArticleList/ArticleList';
+import SearchForm from './components/SearchForm/SearchForm';
 import s from './App.module.css';
-import ClipLoader from 'react-spinners/ClipLoader';
+import { fetchArticlesWithTopic } from './api/articles-api';
+import PacmanLoader from 'react-spinners/PacmanLoader';
 
 const App = () => {
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
+
+  const handleSearch = async topic => {
+    try {
+      setArticles([]);
+      setError(false);
+      setLoading(true);
+      const data = await fetchArticlesWithTopic(topic);
+      setArticles(data);
+    } catch (error) {
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     async function fetchArticles() {
       try {
-        // 1. Встановлюємо індикатор в true перед запитом
         setLoading(true);
-        const response = await axios.get(
-          'https://hn.algolia.com/api/v1/search?query=react',
-        );
-        setArticles(response.data.hits);
+        const data = await fetchArticlesWithTopic('react');
+        setArticles(data);
       } catch (error) {
-        // Тут будемо обробляти помилку
+        setError(true);
       } finally {
-        // 2. Встановлюємо індикатор в false після запиту
         setLoading(false);
       }
     }
@@ -28,16 +40,28 @@ const App = () => {
     fetchArticles();
   }, []);
 
+  const override = {
+    display: 'block',
+    margin: '0 auto',
+  };
+
   return (
     <div>
       <h1 className={s.title}>Latest articles</h1>
+      {error && (
+        <p className={s.error}>
+          Whoops, something went wrong! Please try reloading this page!
+        </p>
+      )}
+      <SearchForm onSearch={handleSearch} />
       {loading ? (
-        <ClipLoader
-          color={'#747474'}
-          loading={loading}
-          size={150}
-          aria-label="Loading Spinner"
-          data-testid="loader"
+        <PacmanLoader
+          color="#1cc246"
+          cssOverride={override}
+          loading
+          margin={2}
+          size={50}
+          speedMultiplier={1}
         />
       ) : (
         articles.length > 0 && <ArticleList items={articles} />
